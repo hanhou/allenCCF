@@ -52,7 +52,7 @@ zlim([-10,dv_max+10])
 
 
 % 4 shank parameters 
-shank_spacing=0:20:60; 
+shank_spacing=0:25:75; % 0:20:60; 
 shank_no=4;
 
 for i=1:shank_no
