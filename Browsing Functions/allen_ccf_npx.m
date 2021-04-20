@@ -19,7 +19,7 @@ bregma = [540,0,570];
 
 % If not already loaded in, load in atlas
 if nargin < 3
-    allen_atlas_path = 'C:\Users\Andrew\OneDrive for Business\Documents\Atlases\AllenCCF';
+    allen_atlas_path = 'D:\Han_Sync\Svoboda\Scripts\Allen\AllenCCF';
     if isempty(allen_atlas_path)
         error('Enter path where Allen CCF is stored at Line 23');
     end
@@ -128,10 +128,49 @@ guidata(probe_atlas_gui, gui_data);
 update_slice(probe_atlas_gui);
 update_probe_coordinates(probe_atlas_gui);
 
+% Show default structures (Han Hou)
+default_structures(probe_atlas_gui);
+
 % Display controls
 display_controls;
 
 end
+
+function default_structures(probe_atlas_gui)
+slice_spacing = 5;
+structure_alpha = 0.2;
+
+% Get guidata
+gui_data = guidata(probe_atlas_gui);
+
+% My foraging ROIs
+gui_data.structure_plot_idx = [239   246   221   298   576   613   824   867   646   686]; 
+
+for ss = 1:length(gui_data.structure_plot_idx)
+  
+    curr_plot_structure = gui_data.structure_plot_idx(ss);
+    
+    % get all children of this one
+    thisID = gui_data.st.id(curr_plot_structure);
+    idStr = sprintf('/%d/', thisID);
+    theseCh = find(cellfun(@(x)contains(x,idStr), gui_data.st.structure_id_path));
+
+    % plot the structure
+    plot_structure_color = hex2dec(reshape(gui_data.st.color_hex_triplet{curr_plot_structure},3,[]))./255;
+    structure_3d = isosurface(permute(ismember(gui_data.av(1:slice_spacing:end, ...
+        1:slice_spacing:end,1:slice_spacing:end),theseCh),[3,1,2]),0);
+
+    gui_data.handles.structure_patch(end+1) = patch('Vertices',structure_3d.vertices*slice_spacing, ...
+        'Faces',structure_3d.faces, ...
+        'FaceColor',plot_structure_color,'EdgeColor','none','FaceAlpha',structure_alpha);
+    
+end
+
+% Upload gui_data
+guidata(probe_atlas_gui, gui_data);
+
+end
+
 
 function key_press(probe_atlas_gui,eventdata)
 
@@ -354,9 +393,10 @@ switch eventdata.Key
                 
             end
             
-            
         end
         
+        gui_data.structure_plot_idx
+
     case {'hyphen','subtract'}
         % Remove structure(s) already plotted
         if ~isempty(gui_data.structure_plot_idx)
